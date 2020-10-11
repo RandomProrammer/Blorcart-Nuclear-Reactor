@@ -12,5 +12,6 @@ end
 --Listener(s)
 local MainLisener = event.listen("modem_message",MsgRec)
 --Exit
+print("Test")
 event.pull("key_down")
 event.cancel(MainLisener)
