@@ -32,18 +32,23 @@ local function MsgRec(componentId, receiverAddress, senderAddress, port, distanc
         local FwrdAddr = FindAddrs(ToForward)
         modem.send(FwrdAddr, Port, message)
     elseif MsgData["Type"] == "cmd" then
-        local Sender = MsgData["Sender"]
         local To = MsgData["To"]
         local FwrdAddr = FindAddrs(To)
-        local ResendAddr = FindAddrs(Sender)
         local Response = {}
         if To == "1" then
-            Response["Type"] = "res"
-            Response["Sender"] = "1"
-            Response["To"] = Sender
-            Response["Data"] = "Instructions Not Supported"
-            local SerialzedResponse = serialization.serialize(Response)
-            modem.send(ResendAddr, Port, SerialzedResponse)
+            if MsgData["Data"]["cmd"] == "AddRoute" then
+                table.insert(RoutingTable,MsgData["Data"]["args"])
+                local f = io.open("/Routing","w")
+                f:write(serialization.serialize(RoutingTable))
+                f:close()
+                local Response = {}
+                Response["Type"] = "res"
+                Response["Sender"] = "1"
+                Response["To"] = MsgData["Data"]["args"][1]
+                Response["Data"] = RoutingTable
+                local SerialzedResponse = serialization.serialize(Response)
+                modem.send(senderAddress, Port, SerialzedResponse)
+            end
         else
             Response = message
             local SerialzedResponse = serialization.serialize(Response)
@@ -53,7 +58,6 @@ local function MsgRec(componentId, receiverAddress, senderAddress, port, distanc
         local Sender = MsgData["Sender"]
         local To = MsgData["To"]
         local FwrdAddr = FindAddrs(To)
-        local ResendAddr = FindAddrs(Sender)
         local Response = {}
         if To == "1" then
             Response["Type"] = "res"
@@ -61,7 +65,7 @@ local function MsgRec(componentId, receiverAddress, senderAddress, port, distanc
             Response["To"] = Sender
             Response["Data"] = RoutingTable
             local SerialzedResponse = serialization.serialize(Response)
-            modem.send(ResendAddr, Port, SerialzedResponse)
+            modem.send(senderAddress, Port, SerialzedResponse)
         else
             Response = message
             local SerialzedResponse = serialization.serialize(Response)
