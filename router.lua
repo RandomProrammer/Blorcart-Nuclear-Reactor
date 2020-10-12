@@ -23,25 +23,25 @@ local function FindAddrs(ToFind)
 end
 local function MsgRec(componentId, receiverAddress, senderAddress, port, distance, message)
     local MsgData = serialization.unserialize(message)
-    if MsgData["Type"] == "Message" then
+    if MsgData["Type"] == "msg" then
         local ToForward = MsgData["To"]
         local FwrdAddr = FindAddrs(ToForward)
         modem.send(FwrdAddr, Port, message)
-    elseif MsgData["Type"] == "RouteInst" then
+    elseif MsgData["Type"] == "cmd" then
         local Sender = MsgData["Sender"]
         local FwrdAddr = FindAddrs(Sender)
         local Response = {}
-        Response["Type"] = "Err"
+        Response["Type"] = "res"
         Response["Sender"] = "1"
         Response["To"] = Sender
         Response["Data"] = "Instructions Not Supported"
         local SerialzedResponse = serialization.serialize(Response)
         modem.send(FwrdAddr, Port, SerialzedResponse)
-    elseif MsgData["Type"] == "GetTable" then
+    elseif MsgData["Type"] == "req" then
         local Sender = MsgData["Sender"]
         local FwrdAddr = FindAddrs(Sender)
         local Response = {}
-        Response["Type"] = "Response"
+        Response["Type"] = "res"
         Response["Sender"] = "1"
         Response["To"] = Sender
         Response["Data"] = RoutingTable
